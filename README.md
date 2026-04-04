@@ -1,6 +1,6 @@
 # gowasmrunner
 
-> Um executor e gateway serverless ultraleve para módulos WebAssembly escrito 100% em Go.
+> An ultra-lightweight serverless execution environment and gateway for WebAssembly modules, written 100% in Go.
 
 ![CI](https://github.com/ESousa97/gowasmrunner/actions/workflows/ci.yml/badge.svg)
 ![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/gowasmrunner)
@@ -11,49 +11,49 @@
 
 ---
 
-O gowasmrunner é um ambiente de execução isolado que permite rodar funções WebAssembly localmente via CLI ou expô-las instantaneamente como uma API HTTP serverless. Ele resolve o problema de portabilidade e segurança na execução de código de terceiros, garantindo limites rígidos de memória e tempo de execução sem depender de dependências CGO.
+`gowasmrunner` is an isolated execution environment that allows you to run WebAssembly functions locally via the CLI or expose them instantly as a serverless HTTP API. It solves portability and security issues when running third-party code by enforcing strict memory and execution time boundaries, without relying on CGO dependencies.
 
-## Demonstração
+## Demonstration
 
-Executando um plugin via CLI:
+Running a plugin via CLI:
 ```bash
 $ gowasmrunner -mode plugin plugin-add.wasm add 10 20
 Plugin plugin-add.wasm [add] result: [30]
 ```
 
-Executando como Gateway Serverless:
+Running as a Serverless Gateway:
 ```bash
 $ gowasmrunner -mode server -port 8080
 2026/04/04 19:30:00 🚀 gowasmrunner HTTP serverless gateway running on port 8080
 
-# Em outro terminal:
-$ curl -X POST "http://localhost:8080/execute/plugin-greet.wasm?func=greet" -d "Mundo"
-Hello, Mundo
+# In another terminal window:
+$ curl -X POST "http://localhost:8080/execute/plugin-greet.wasm?func=greet" -d "World"
+Hello, World
 ```
 
-## Stack Tecnológico
+## Tech Stack
 
-| Tecnologia | Papel |
+| Technology | Role |
 |---|---|
-| Go | Linguagem base, provê concorrência e compilação estática |
-| wazero | Runtime WebAssembly zero-dependências (CGO-free) |
-| Docker | Empacotamento e distribuição do Gateway Serverless |
-| net/http | Servidor web nativo para exposição dos plugins |
+| Go | Base language, provides concurrency and static compilation |
+| wazero | Zero-dependency WebAssembly runtime (CGO-free) |
+| Docker | Packaging and distribution for the Serverless Gateway |
+| net/http | Native web server for plugin exposure |
 
-## Pré-requisitos
+## Prerequisites
 
 - Go >= 1.21
-- Docker (opcional, para rodar como container)
+- Docker (optional, for running as a container)
 
-## Instalação e Uso
+## Installation and Usage
 
-### Como binário
+### As a binary
 
 ```bash
 go install github.com/ESousa97/gowasmrunner/cmd/runner@latest
 ```
 
-### A partir do source
+### From source
 
 ```bash
 git clone https://github.com/ESousa97/gowasmrunner.git
@@ -62,7 +62,7 @@ make build
 make run
 ```
 
-### Com Docker
+### With Docker
 
 ```bash
 docker build -t gowasmrunner .
@@ -71,85 +71,85 @@ docker run -p 8080:8080 gowasmrunner
 
 ## Makefile Targets
 
-| Target | Descrição |
+| Target | Description |
 |---|---|
-| `build` | Compila o binário CLI na pasta `bin/` |
-| `test` | Executa todos os testes de integração e unidade |
-| `gen-example` | Gera os módulos `.wasm` de exemplo na pasta `examples/` |
-| `run` | Faz o build, gera os exemplos e executa uma soma simples de teste |
-| `clean` | Remove artefatos de build e módulos compilados temporários |
+| `build` | Compiles the CLI binary into the `bin/` folder |
+| `test` | Runs all integration and unit tests |
+| `gen-example` | Generates example `.wasm` modules in the `examples/` folder |
+| `run` | Builds, generates examples, and executes a simple addition test |
+| `clean` | Removes build artifacts and temporary compiled modules |
 
-## Arquitetura
+## Architecture
 
-O projeto segue uma arquitetura modular focada em isolamento:
-- `cmd/runner`: Ponto de entrada que gerencia a CLI e o Servidor HTTP.
-- `internal/engine`: Core do sistema. Gerencia o ciclo de vida do `wazero`, limites de recursos (memória/timeout), integração WASI e o cache de módulos compilados (`PluginStore`).
-- `plugins/`: Diretório padrão escaneado pelo sistema para pre-warming de módulos.
+The project follows a modular architecture focused on isolation:
+- `cmd/runner`: Entry point that manages the CLI and the HTTP Server.
+- `internal/engine`: The core system. Manages the `wazero` lifecycle, resource limits (memory/timeout), WASI integration, and the compiled modules cache (`PluginStore`).
+- `plugins/`: Default directory scanned by the system for module pre-warming.
 
-Veja [docs/architecture.md](docs/architecture.md) para mais detalhes sobre as decisões técnicas.
+See [docs/architecture.md](docs/architecture.md) for more details on technical decisions.
 
 ## API Reference
 
-### Executar Plugin
+### Execute Plugin
 
 `POST /execute/{plugin_name}`
 
-Executa uma função exportada de um módulo Wasm em cache.
+Executes an exported function from a cached Wasm module.
 
 **Query Parameters:**
-- `func` (opcional): Nome da função a ser executada. Padrão: `greet`.
+- `func` (optional): Name of the function to execute. Default: `greet`.
 
 **Body:**
-Payload bruto (text/plain, application/json, etc) que será passado para a memória linear do módulo Wasm.
+Raw payload (text/plain, application/json, etc) that will be passed to the Wasm module's linear memory.
 
 **Response:**
-O resultado retornado pela função Wasm, codificado como texto no corpo da resposta.
+The result returned by the Wasm function, text-encoded in the response body.
 
-## Configuração
+## Configuration
 
-As configurações atuais são geridas via flags de linha de comando:
+Current configurations are managed via command line flags:
 
-| Flag | Descrição | Tipo | Padrão |
+| Flag | Description | Type | Default |
 |---|---|---|---|
-| `-mode` | Modo de operação (`numeric`, `string`, `plugin`, `server`) | string | `numeric` |
-| `-wasm` | Caminho direto para um arquivo Wasm (modos num/str) | string | `""` |
-| `-plugins` | Diretório para carregar plugins em cache | string | `./plugins` |
-| `-func` | Função padrão a ser executada | string | `add` |
-| `-port` | Porta para o servidor HTTP | string | `8080` |
+| `-mode` | Operation mode (`numeric`, `string`, `plugin`, `server`) | string | `numeric` |
+| `-wasm` | Direct path to a Wasm file (num/str modes) | string | `""` |
+| `-plugins` | Directory to load cached plugins from | string | `./plugins` |
+| `-func` | Default function to be executed | string | `add` |
+| `-port` | Port for the HTTP server | string | `8080` |
 
-## Roadmap (Fases Implementadas)
+## Roadmap (Implemented Phases)
 
-**Fase 1: O Hospedeiro (Wasm Runtime Básico)**
-- **Objetivo:** Configurar o runtime e executar uma função aritmética simples compilada em Wasm.
-- **O que foi feito:** Utilizada a biblioteca Wazero (100% Go, sem dependência de CGO) para carregar um arquivo `.wasm` e chamar uma função exportada via argumentos da linha de comando.
+**Phase 1: The Host (Basic Wasm Runtime)**
+- **Objective:** Configure the runtime and execute a simple arithmetic function compiled in Wasm.
+- **What was done:** Utilized the Wazero library (100% Go, no CGO dependency) to load a `.wasm` file and call an exported function via command line arguments.
 
-**Fase 2: A Ponte (Memória e Troca de Dados)**
-- **Objetivo:** Superar a limitação do Wasm de lidar apenas com números, permitindo a passagem de strings e objetos complexos.
-- **O que foi feito:** Implementada a lógica de alocação de memória no guest (Wasm) e leitura/escrita de buffers no host (Go) para passar e retornar strings saudosas.
+**Phase 2: The Bridge (Memory and Data Exchange)**
+- **Objective:** Overcome Wasm's limitation of only handling numbers by enabling the passing of strings and complex objects.
+- **What was done:** Implemented memory allocation logic in the guest (Wasm) and buffer read/write operations in the host (Go) to pass and return greeting strings.
 
-**Fase 3: O Carcereiro (Sandboxing e Recursos)**
-- **Objetivo:** Garantir que o módulo Wasm não consuma todos os recursos do servidor, essencial para o modelo serverless.
-- **O que foi feito:** Configurados limites de memória (`MaxMemoryPages`) e tempo de execução (`context.WithTimeout`) para a instância Wasm, além de suporte básico WASI para logs seguros no console do host.
+**Phase 3: The Warden (Sandboxing and Resources)**
+- **Objective:** Ensure the Wasm module does not consume all server resources, which is essential for the serverless model.
+- **What was done:** Configured memory limits (`MaxMemoryPages`) and execution timeouts (`context.WithTimeout`) for the Wasm instance, alongside basic WASI support for secure host console logging.
 
-**Fase 4: O Registro (Sistema de Plugins Dinâmicos)**
-- **Objetivo:** Transformar o executor em uma plataforma que carrega e gerencia múltiplos módulos "on-the-fly".
-- **O que foi feito:** Criado um `PluginStore` que monitora a pasta `/plugins`, pré-compila os módulos (`CompiledModule`) e os armazena em memória (cache) para invocações ultra-rápidas via CLI ou servidor.
+**Phase 4: The Registry (Dynamic Plugin System)**
+- **Objective:** Transform the executor into a platform that loads and manages multiple modules "on-the-fly".
+- **What was done:** Created a `PluginStore` that monitors the `/plugins` folder, pre-compiles the modules (`CompiledModule`), and caches them in memory for ultra-fast invocations via CLI or server.
 
-**Fase 5: O Gateway (Interface Serverless HTTP)**
-- **Objetivo:** Expor os módulos Wasm através de uma API HTTP, simulando o comportamento de um AWS Lambda ou Cloudflare Workers.
-- **O que foi feito:** Desenvolvido um servidor HTTP (porta 8080) onde o path `/execute/{plugin_name}` roteia a requisição (POST body) para o respectivo plugin Wasm. Inclui um `Dockerfile` enxuto (Alpine) pronto para deploy.
+**Phase 5: The Gateway (Serverless HTTP Interface)**
+- **Objective:** Expose Wasm modules through an HTTP API, simulating the behavior of AWS Lambda or Cloudflare Workers.
+- **What was done:** Developed an HTTP server (port 8080) where the `/execute/{plugin_name}` path routes the request (POST body) to the respective Wasm plugin. Included a lean `Dockerfile` (Alpine) ready for deployment.
 
-**Cereja do Bolo (Agnosticismo de Linguagem)**
-- O ambiente prova ser agnóstico a linguagens permitindo que funções escritas em linguagens como **Rust** ou **TinyGo** sejam facilmente compiladas para `.wasm` e depositadas na pasta de exemplos/plugins para execução idêntica.
+**The Cherry on Top (Language Agnosticism)**
+- The environment proves to be language-agnostic, allowing functions written in languages like **Rust** or **TinyGo** to be easily compiled to `.wasm` and placed in the examples/plugins folder for identical execution.
 
-## Contribuindo
+## Contributing
 
-Consulte nosso [CONTRIBUTING.md](CONTRIBUTING.md) para saber como configurar seu ambiente, rodar os testes e enviar Pull Requests.
+Check our [CONTRIBUTING.md](CONTRIBUTING.md) to learn how to set up your environment, run tests, and submit Pull Requests.
 
-## Licença
+## License
 
-Distribuído sob a licença MIT. Veja [LICENSE](LICENSE) para mais informações.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
-## Autor
+## Author
 
-Enoque Sousa - [Portfólio](https://enoquesousa.vercel.app) - [GitHub](https://github.com/ESousa97)
+Enoque Sousa - [Portfolio](https://enoquesousa.vercel.app) - [GitHub](https://github.com/ESousa97)
