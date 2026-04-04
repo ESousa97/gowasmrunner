@@ -1,0 +1,17 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+examples/*.wasm
+!examples/add.wasm
+
+# Go
+vendor/
+go.sum
+*.test
+*.out
