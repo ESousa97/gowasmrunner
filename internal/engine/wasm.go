@@ -104,6 +104,60 @@ func (r *Runner) RunPlugin(ctx context.Context, pluginName string, funcName stri
 	return f.Call(execCtx, params...)
 }
 
+// RunPluginString executa uma função de um plugin em cache passando e retornando strings.
+func (r *Runner) RunPluginString(ctx context.Context, pluginName string, funcName string, input string) (string, error) {
+	compiled, ok := r.plugins[pluginName]
+	if !ok {
+		return "", fmt.Errorf("plugin %s not found in cache", pluginName)
+	}
+
+	execCtx, cancel := context.WithTimeout(ctx, r.config.Timeout)
+	defer cancel()
+
+	modCfg := wazero.NewModuleConfig().
+		WithStdout(r.config.Stdout).
+		WithStderr(r.config.Stdout)
+
+	mod, err := r.runtime.InstantiateModule(execCtx, compiled, modCfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to instantiate plugin %s: %w", pluginName, err)
+	}
+	defer mod.Close(execCtx)
+
+	targetFunc := mod.ExportedFunction(funcName)
+	allocFunc := mod.ExportedFunction("allocate")
+	if targetFunc == nil || allocFunc == nil {
+		return "", fmt.Errorf("exported functions '%s' or 'allocate' not found in plugin %s", funcName, pluginName)
+	}
+
+	inputSize := uint64(len(input))
+	results, err := allocFunc.Call(execCtx, inputSize)
+	if err != nil {
+		return "", fmt.Errorf("failed to allocate memory: %w", err)
+	}
+	inputPtr := results[0]
+
+	if !mod.Memory().Write(uint32(inputPtr), []byte(input)) {
+		return "", fmt.Errorf("out of memory bounds when writing string")
+	}
+
+	targetResults, err := targetFunc.Call(execCtx, inputPtr, inputSize)
+	if err != nil {
+		return "", fmt.Errorf("failed to call %s: %w", funcName, err)
+	}
+
+	ptrLen := targetResults[0]
+	resPtr := uint32(ptrLen >> 32)
+	resLen := uint32(ptrLen)
+
+	resBytes, ok := mod.Memory().Read(resPtr, resLen)
+	if !ok {
+		return "", fmt.Errorf("out of memory bounds when reading result")
+	}
+
+	return string(resBytes), nil
+}
+
 // RunFunction carrega um arquivo Wasm e executa uma função numérica genérica.
 func (r *Runner) RunFunction(ctx context.Context, wasmPath string, funcName string, params ...uint64) ([]uint64, error) {
 	execCtx, cancel := context.WithTimeout(ctx, r.config.Timeout)
