@@ -1,3 +1,9 @@
+// Package engine provides the core WebAssembly execution environment.
+// It securely encapsulates the wazero runtime, handles WASI integration,
+// enforces resource limits, and manages an in-memory cache of compiled plugins.
+//
+// The primary entry point is [NewRunner], which creates a configured
+// [Runner] instance ready to execute Wasm functions or HTTP requests.
 package engine
 
 import (
@@ -12,21 +18,34 @@ import (
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 )
 
-// RunnerConfig define os limites de segurança para a execução.
+// RunnerConfig defines security boundaries and execution limits for the Wasm environment.
+// It must be passed to [NewRunner] during initialization.
 type RunnerConfig struct {
-	MaxMemoryPages uint32        // Maximum 64KB pages
-	Timeout        time.Duration // Maximum execution time
-	Stdout         io.Writer     // Where Wasm will write logs
+	// MaxMemoryPages sets the maximum amount of 64KB pages a module can allocate.
+	MaxMemoryPages uint32
+
+	// Timeout enforces a strict deadline on any function execution to prevent infinite loops.
+	Timeout time.Duration
+
+	// Stdout defines where guest modules can securely write log output via WASI.
+	Stdout io.Writer
 }
 
-// Runner encapsula a lógica de execução segura e o cache de plugins.
+// Runner handles the secure execution of WebAssembly modules and manages the plugin cache.
+// It depends on [RunnerConfig] for security constraints.
+//
+// Create a new Runner with [NewRunner]:
+//
+//	runner, err := engine.NewRunner(ctx, cfg)
+//	defer runner.Close(ctx)
 type Runner struct {
 	runtime wazero.Runtime
 	config  RunnerConfig
-	plugins map[string]wazero.CompiledModule // Cache de módulos compilados
+	plugins map[string]wazero.CompiledModule
 }
 
-// NewRunner inicializa o runtime e o store de plugins.
+// NewRunner initializes a secure wazero runtime and a new plugin store.
+// It automatically integrates [wasi_snapshot_preview1] for secure stdout logging.
 func NewRunner(ctx context.Context, cfg RunnerConfig) (*Runner, error) {
 	rtCfg := wazero.NewRuntimeConfig().
 		WithMemoryLimitPages(cfg.MaxMemoryPages)
@@ -104,7 +123,9 @@ func (r *Runner) RunPlugin(ctx context.Context, pluginName string, funcName stri
 	return f.Call(execCtx, params...)
 }
 
-// RunPluginString executa uma função de um plugin em cache passando e retornando strings.
+// RunPluginString passes a string payload to a cached Wasm plugin and retrieves a string result.
+// It leverages linear memory integration: first allocating memory on the guest,
+// then writing the host string directly into the guest bounds.
 func (r *Runner) RunPluginString(ctx context.Context, pluginName string, funcName string, input string) (string, error) {
 	compiled, ok := r.plugins[pluginName]
 	if !ok {

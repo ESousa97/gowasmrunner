@@ -7,11 +7,11 @@ import (
 
 // Generates two Wasm binaries for security/limit testing:
 //
-// 1. infinite_loop.wasm - An infinite loop to test execution timeout.
-//    WAT: (module (func (export "infinite_loop") (loop (br 0))))
+//  1. infinite_loop.wasm - An infinite loop to test execution timeout.
+//     WAT: (module (func (export "infinite_loop") (loop (br 0))))
 //
-// 2. memory_limit.wasm - Requests 100 memory pages (6.4MB) to test memory limits.
-//    WAT: (module (memory (export "memory") 100))
+//  2. memory_limit.wasm - Requests 100 memory pages (6.4MB) to test memory limits.
+//     WAT: (module (memory (export "memory") 100))
 func main() {
 	// 1. Infinite Loop Wasm (to test Timeout)
 	infiniteLoopWasm := []byte{

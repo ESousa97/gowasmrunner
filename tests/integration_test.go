@@ -12,7 +12,7 @@ import (
 
 func TestWasmRunner(t *testing.T) {
 	ctx := context.Background()
-	
+
 	cfg := engine.RunnerConfig{
 		MaxMemoryPages: 10,
 		Timeout:        2 * time.Second,
@@ -28,7 +28,7 @@ func TestWasmRunner(t *testing.T) {
 	// Subtest 1: Numeric Operation (Addition)
 	t.Run("Numeric Addition", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "add.wasm")
-		
+
 		// Check if the file exists, otherwise skip (must be generated first)
 		if _, err := os.Stat(wasmPath); os.IsNotExist(err) {
 			t.Skip("add.wasm not found, run generators first")
@@ -47,14 +47,14 @@ func TestWasmRunner(t *testing.T) {
 	// Subtest 2: String Manipulation (Greeting)
 	t.Run("String Greeting", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "greet.wasm")
-		
+
 		if _, err := os.Stat(wasmPath); os.IsNotExist(err) {
 			t.Skip("greet.wasm not found, run generators first")
 		}
 
 		name := "Gemini"
 		expected := "Hello, Gemini"
-		
+
 		result, err := runner.RunGreet(ctx, wasmPath, name)
 		if err != nil {
 			t.Fatalf("RunGreet failed: %v", err)
@@ -100,7 +100,7 @@ func TestWasmRunner(t *testing.T) {
 	// Subtest 4: Execution Timeout
 	t.Run("Execution Timeout", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "infinite_loop.wasm")
-		
+
 		// Create a runner with a short timeout for the test
 		shortTimeoutCfg := cfg
 		shortTimeoutCfg.Timeout = 100 * time.Millisecond
@@ -116,7 +116,7 @@ func TestWasmRunner(t *testing.T) {
 	// Subtest 5: Memory Limit
 	t.Run("Memory Limit", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "memory_limit.wasm")
-		
+
 		// Try to instantiate a module that requests 100 pages (6.4MB)
 		// Our runner limits to 10 pages (640KB).
 		_, err := runner.RunFunction(ctx, wasmPath, "dummy")

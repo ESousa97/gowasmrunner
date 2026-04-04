@@ -72,8 +72,8 @@ func main() {
 		0x4d,       // i32.le_u
 		0x04, 0x40, // if (void block type)
 		0x20, 0x00, // local.get 0 ($n)
-		0x0f,       // return
-		0x0b,       // end if
+		0x0f, // return
+		0x0b, // end if
 
 		// --- a = 0 ---
 		0x41, 0x00, // i32.const 0
@@ -122,7 +122,7 @@ func main() {
 
 		// return b
 		0x20, 0x02, // local.get 2 ($b)
-		0x0b,       // end function
+		0x0b, // end function
 	}
 
 	bodySize := byte(len(code))
@@ -139,33 +139,33 @@ func main() {
 
 	// Type Section: 1 type (i32) -> (i32)
 	wasm = append(wasm,
-		0x01,                   // section id: type
-		0x06,                   // section size
-		0x01,                   // 1 type
-		0x60,                   // func type
-		0x01, 0x7f,             // 1 param: i32
-		0x01, 0x7f,             // 1 result: i32
+		0x01,       // section id: type
+		0x06,       // section size
+		0x01,       // 1 type
+		0x60,       // func type
+		0x01, 0x7f, // 1 param: i32
+		0x01, 0x7f, // 1 result: i32
 	)
 
 	// Function Section: 1 function, type index 0
 	wasm = append(wasm,
-		0x03,       // section id: function
-		0x02,       // section size
-		0x01,       // 1 function
-		0x00,       // type index 0
+		0x03, // section id: function
+		0x02, // section size
+		0x01, // 1 function
+		0x00, // type index 0
 	)
 
 	// Export Section: "fibonacci" -> func 0
 	exportSectionPayload := []byte{
-		0x01,                          // 1 export
-		byte(len(exportName)),         // name length
+		0x01,                  // 1 export
+		byte(len(exportName)), // name length
 	}
 	exportSectionPayload = append(exportSectionPayload, exportName...)
 	exportSectionPayload = append(exportSectionPayload, 0x00) // kind: func
 	exportSectionPayload = append(exportSectionPayload, 0x00) // index: 0
 
-	wasm = append(wasm, 0x07)                             // section id: export
-	wasm = append(wasm, byte(len(exportSectionPayload)))  // section size
+	wasm = append(wasm, 0x07)                            // section id: export
+	wasm = append(wasm, byte(len(exportSectionPayload))) // section size
 	wasm = append(wasm, exportSectionPayload...)
 
 	// Code Section: 1 body
@@ -175,8 +175,8 @@ func main() {
 	}
 	codeSectionPayload = append(codeSectionPayload, code...)
 
-	wasm = append(wasm, 0x0a)                             // section id: code
-	wasm = append(wasm, byte(len(codeSectionPayload)))     // section size
+	wasm = append(wasm, 0x0a)                          // section id: code
+	wasm = append(wasm, byte(len(codeSectionPayload))) // section size
 	wasm = append(wasm, codeSectionPayload...)
 
 	if err := os.WriteFile("examples/rust_fibonacci.wasm", wasm, 0644); err != nil {

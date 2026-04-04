@@ -1,3 +1,6 @@
+// Package main implements the CLI application and Serverless Gateway for gowasmrunner.
+// It manages parsing arguments, bootstrapping the wazero environment, and orchestrating
+// HTTP requests to underlying WebAssembly modules.
 package main
 
 import (
@@ -37,8 +40,8 @@ func main() {
 
 	// Configuração do Runner com limites de segurança.
 	cfg := engine.RunnerConfig{
-		MaxMemoryPages: 20,                  // Aumentado para suportar plugins maiores
-		Timeout:        5 * time.Second,     // Timeout de 5 segundos
+		MaxMemoryPages: 20,              // Aumentado para suportar plugins maiores
+		Timeout:        5 * time.Second, // Timeout de 5 segundos
 		Stdout:         os.Stdout,
 	}
 
@@ -137,7 +140,7 @@ func main() {
 		if len(args) < 1 {
 			log.Fatal("Missing name argument for string mode")
 		}
-		
+
 		result, err := runner.RunGreet(ctx, *wasmPath, args[0])
 		if err != nil {
 			log.Fatalf("Error executing wasm greeting: %v", err)
