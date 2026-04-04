@@ -65,6 +65,38 @@ func TestWasmRunner(t *testing.T) {
 		}
 	})
 
+	// Subtest 3: Cross-Language Execution (Rust-style Fibonacci)
+	t.Run("Rust Fibonacci", func(t *testing.T) {
+		wasmPath := filepath.Join("..", "examples", "rust_fibonacci.wasm")
+
+		if _, err := os.Stat(wasmPath); os.IsNotExist(err) {
+			t.Skip("rust_fibonacci.wasm not found, run generators first")
+		}
+
+		// Table-driven tests covering base cases and known Fibonacci values
+		cases := []struct {
+			input    uint64
+			expected uint64
+		}{
+			{0, 0},
+			{1, 1},
+			{2, 1},
+			{5, 5},
+			{10, 55},
+			{20, 6765},
+		}
+
+		for _, tc := range cases {
+			results, err := runner.RunFunction(ctx, wasmPath, "fibonacci", tc.input)
+			if err != nil {
+				t.Fatalf("fibonacci(%d) failed: %v", tc.input, err)
+			}
+			if len(results) == 0 || results[0] != tc.expected {
+				t.Errorf("fibonacci(%d) = %v, expected %d", tc.input, results, tc.expected)
+			}
+		}
+	})
+
 	// Subtest 4: Execution Timeout
 	t.Run("Execution Timeout", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "infinite_loop.wasm")
