@@ -119,7 +119,9 @@ func handleExecute(w http.ResponseWriter, r *http.Request, runner *engine.Runner
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	if _, err := w.Write([]byte(result)); err != nil {
+		log.Printf("Error writing response: %v", err)
+	}
 }
 
 func runPluginMode(ctx context.Context, runner *engine.Runner, args []string, pluginDir string) {
