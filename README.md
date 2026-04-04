@@ -117,16 +117,30 @@ As configurações atuais são geridas via flags de linha de comando:
 | `-func` | Função padrão a ser executada | string | `add` |
 | `-port` | Porta para o servidor HTTP | string | `8080` |
 
-## Roadmap
+## Roadmap (Fases Implementadas)
 
-- [x] Suporte básico de execução Wasm
-- [x] Passagem de strings via memória linear
-- [x] Limites de segurança (Memory e Timeout)
-- [x] Sistema de Cache de Plugins
-- [x] Gateway HTTP Serverless
-- [ ] Hot-reload de plugins via filesystem watcher
-- [ ] Suporte a passagem estruturada de JSON (Host <-> Guest)
-- [ ] Métricas de execução via Prometheus
+**Fase 1: O Hospedeiro (Wasm Runtime Básico)**
+- **Objetivo:** Configurar o runtime e executar uma função aritmética simples compilada em Wasm.
+- **O que foi feito:** Utilizada a biblioteca Wazero (100% Go, sem dependência de CGO) para carregar um arquivo `.wasm` e chamar uma função exportada via argumentos da linha de comando.
+
+**Fase 2: A Ponte (Memória e Troca de Dados)**
+- **Objetivo:** Superar a limitação do Wasm de lidar apenas com números, permitindo a passagem de strings e objetos complexos.
+- **O que foi feito:** Implementada a lógica de alocação de memória no guest (Wasm) e leitura/escrita de buffers no host (Go) para passar e retornar strings saudosas.
+
+**Fase 3: O Carcereiro (Sandboxing e Recursos)**
+- **Objetivo:** Garantir que o módulo Wasm não consuma todos os recursos do servidor, essencial para o modelo serverless.
+- **O que foi feito:** Configurados limites de memória (`MaxMemoryPages`) e tempo de execução (`context.WithTimeout`) para a instância Wasm, além de suporte básico WASI para logs seguros no console do host.
+
+**Fase 4: O Registro (Sistema de Plugins Dinâmicos)**
+- **Objetivo:** Transformar o executor em uma plataforma que carrega e gerencia múltiplos módulos "on-the-fly".
+- **O que foi feito:** Criado um `PluginStore` que monitora a pasta `/plugins`, pré-compila os módulos (`CompiledModule`) e os armazena em memória (cache) para invocações ultra-rápidas via CLI ou servidor.
+
+**Fase 5: O Gateway (Interface Serverless HTTP)**
+- **Objetivo:** Expor os módulos Wasm através de uma API HTTP, simulando o comportamento de um AWS Lambda ou Cloudflare Workers.
+- **O que foi feito:** Desenvolvido um servidor HTTP (porta 8080) onde o path `/execute/{plugin_name}` roteia a requisição (POST body) para o respectivo plugin Wasm. Inclui um `Dockerfile` enxuto (Alpine) pronto para deploy.
+
+**Cereja do Bolo (Agnosticismo de Linguagem)**
+- O ambiente prova ser agnóstico a linguagens permitindo que funções escritas em linguagens como **Rust** ou **TinyGo** sejam facilmente compiladas para `.wasm` e depositadas na pasta de exemplos/plugins para execução idêntica.
 
 ## Contribuindo
 
