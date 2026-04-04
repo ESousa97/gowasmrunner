@@ -3,33 +3,33 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Otimização do cache de dependências
+# Cache dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copia o código-fonte
+# Copy the source code
 COPY . .
 
-# Compila o binário estático
+# Compile the static binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o gowasmrunner cmd/runner/main.go
 
-# Gera os plugins de exemplo (Wasm manual via script Go)
+# Generate example plugins
 RUN mkdir -p /app/plugins
-RUN go run examples/gen_greet.go && mv examples/greet.wasm /app/plugins/plugin-greet.wasm
-RUN go run examples/gen_wasm.go && mv examples/add.wasm /app/plugins/plugin-add.wasm
+RUN go build -o gen_greet examples/gen_greet/main.go && ./gen_greet && mv examples/greet.wasm /app/plugins/plugin-greet.wasm
+RUN go build -o gen_add examples/gen_add/main.go && ./gen_add && mv examples/add.wasm /app/plugins/plugin-add.wasm
 
 # Run Stage
-FROM alpine:latest
+FROM alpine:3.19.1
 
 WORKDIR /root/
 
-# Copia o binário
+# Copy the binary
 COPY --from=builder /app/gowasmrunner .
 
-# Copia os plugins compilados
+# Copy the compiled plugins
 COPY --from=builder /app/plugins ./plugins
 
 EXPOSE 8080
 
-# Inicia o servidor HTTP por padrão
+# Start the HTTP server by default
 ENTRYPOINT ["./gowasmrunner", "-mode", "server", "-port", "8080", "-plugins", "./plugins"]
