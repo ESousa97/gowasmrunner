@@ -12,6 +12,5 @@ examples/*.wasm
 
 # Go
 vendor/
-go.sum
 *.test
 *.out
