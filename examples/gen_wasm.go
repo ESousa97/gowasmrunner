@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	// Binário Wasm mínimo para uma função add(i32, i32) -> i32
+	// Minimal Wasm binary for a run function add(i32, i32) -> i32
 	// WAT:
 	// (module
 	//   (func $add (param i32 i32) (result i32)

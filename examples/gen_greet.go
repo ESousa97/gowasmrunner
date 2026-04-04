@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -6,27 +8,27 @@ import (
 )
 
 func main() {
-	// WAT representação do módulo:
+	// WAT module representation:
 	/*
 	(module
-	  ;; Define 1 página de memória linear (64KB) e a exporta para o Host.
-	  ;; O Host (Go) poderá ler/escrever diretamente nesta memória.
+	  ;; Define 1 page of linear memory (64KB) and export it to the Host.
+	  ;; The Host (Go) can read/write directly to this memory.
 	  (memory (export "memory") 1)
 
-	  ;; Função para o Host alocar espaço no Guest.
-	  ;; Em um sistema real, aqui estaria uma implementação de malloc.
+	  ;; Function for the Host to allocate space in the Guest.
+	  ;; In a real system, a malloc implementation would be here.
 	  (func (export "allocate") (param i32) (result i32)
-	    (i32.const 1024) ;; Simplesmente retorna o offset 1024
+	    (i32.const 1024) ;; Simply returns the offset 1024
 	  )
 
-	  ;; Função greet(ptr, len) que formata uma saudação.
-	  ;; ptr: offset onde a string de entrada foi escrita pelo Host.
-	  ;; len: tamanho da string de entrada.
-	  ;; retorna: um i64 contendo (offset << 32 | tamanho) da string resultante.
+	  ;; Function greet(ptr, len) that formats a greeting.
+	  ;; ptr: offset where the input string was written by the Host.
+	  ;; len: length of the input string.
+	  ;; returns: an i64 containing (offset << 32 | length) of the resulting string.
 	  (func (export "greet") (param $ptr i32) (param $len i32) (result i64)
 	    (local $i i32)
 	    
-	    ;; 1. Escrever "Hello, " (7 bytes) no offset 2048
+	    ;; 1. Write "Hello, " (7 bytes) at offset 2048
 	    ;; 'H'=72, 'e'=101, 'l'=108, 'l'=108, 'o'=111, ','=44, ' '=32
 	    (i32.store8 (i32.const 2048) (i32.const 72))
 	    (i32.store8 (i32.const 2049) (i32.const 101))
@@ -36,7 +38,7 @@ func main() {
 	    (i32.store8 (i32.const 2053) (i32.const 44))
 	    (i32.store8 (i32.const 2054) (i32.const 32))
 
-	    ;; 2. Copiar o nome do Host para logo após "Hello, " (offset 2055)
+	    ;; 2. Copy the input string right after "Hello, " (offset 2055)
 	    (loop $copy
 	      (block $exit
 	        (br_if $exit (i32.eq (local.get $i) (local.get $len)))
@@ -49,8 +51,8 @@ func main() {
 	      )
 	    )
 
-	    ;; 3. Retornar (offset=2048 << 32 | len=7 + $len)
-	    ;; Usamos i64 para passar dois valores i32 de uma vez.
+	    ;; 3. Return (offset=2048 << 32 | len=7 + $len)
+	    ;; We use i64 to pass two i32 values at once.
 	    (i64.or
 	      (i64.shl (i64.extend_i32_u (i32.const 2048)) (i64.const 32))
 	      (i64.extend_i32_u (i32.add (i32.const 7) (local.get $len)))

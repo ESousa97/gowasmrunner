@@ -1,43 +1,43 @@
 # gowasmrunner
 
-Um executor leve de módulos WebAssembly escrito em Go utilizando a biblioteca [wazero](https://github.com/tetratelabs/wazero).
+A lightweight WebAssembly module runner written in Go using the [wazero](https://github.com/tetratelabs/wazero) library.
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- **Zero Dependências CGO:** Utiliza `wazero`, um runtime 100% Go.
-- **Suporte WASI:** Preparado para módulos que interagem com o sistema.
-- **CLI Flexível:** Invoque funções exportadas passando argumentos via linha de comando.
-- **Tratamento de Erros:** Validação rigorosa de arquivos Wasm e assinaturas de função.
+- **Zero CGO Dependencies:** Uses `wazero`, a 100% Go runtime.
+- **WASI Support:** Ready for modules that interact with the system.
+- **Flexible CLI:** Invoke exported functions by passing arguments via command line.
+- **Error Handling:** Strict validation of Wasm files and function signatures.
 
-## 🛠️ Como Usar
+## 🛠️ Usage
 
-### Pré-requisitos
+### Prerequisites
 - Go 1.21+
 
-### Instalação
+### Installation
 ```bash
 git clone https://github.com/esousa97/gowasmrunner.git
 cd gowasmrunner
 go mod download
 ```
 
-### Executando um exemplo
-Primeiro, gere o módulo de exemplo:
+### Running an example
+First, generate the example module:
 ```bash
 go run examples/gen_wasm.go
 ```
 
-Agora, execute a função `add` do módulo gerado:
+Now, execute the `add` function of the generated module:
 ```bash
 go run cmd/runner/main.go -wasm examples/add.wasm -func add 10 20
 ```
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Project Structure
 
-- `cmd/runner/`: Ponto de entrada da aplicação CLI.
-- `internal/engine/`: Core logic para carregamento e execução Wasm.
-- `examples/`: Módulos de exemplo e scripts de geração.
+- `cmd/runner/`: Entry point for the CLI application.
+- `internal/engine/`: Core logic for Wasm loading and execution.
+- `examples/`: Example modules and generator scripts.
 
-## 📜 Licença
+## 📜 License
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Distributed under the MIT license. See `LICENSE` for more information.

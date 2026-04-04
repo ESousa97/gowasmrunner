@@ -7,14 +7,16 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/esousa97/gowasmrunner/internal/engine"
 )
 
 func main() {
-	// Definindo flags de linha de comando.
+	// Define command line flags.
 	wasmPath := flag.String("wasm", "", "Path to the WebAssembly module file")
 	mode := flag.String("mode", "numeric", "Execution mode: 'numeric' or 'string'")
+	funcName := flag.String("func", "add", "The name of the exported function to invoke")
 	flag.Parse()
 
 	if *wasmPath == "" {
@@ -25,15 +27,22 @@ func main() {
 
 	ctx := context.Background()
 
-	// Inicializar o Runner.
-	runner, err := engine.NewRunner(ctx)
+	// Runner configuration with safety limits.
+	cfg := engine.RunnerConfig{
+		MaxMemoryPages: 10,                 // Limit of 640KB RAM
+		Timeout:        2 * time.Second,     // 2 seconds timeout
+		Stdout:         os.Stdout,           // Wasm logs to terminal
+	}
+
+	// Initialize the Runner.
+	runner, err := engine.NewRunner(ctx, cfg)
 	if err != nil {
 		log.Fatalf("Error creating runner: %v", err)
 	}
 	defer runner.Close(ctx)
 
 	if *mode == "string" {
-		// Modo String: pega o primeiro argumento após as flags.
+		// String Mode: get the first argument after flags.
 		args := flag.Args()
 		if len(args) < 1 {
 			log.Fatal("Missing name argument for string mode")
@@ -45,7 +54,7 @@ func main() {
 		}
 		fmt.Printf("Wasm Result: %s\n", result)
 	} else {
-		// Modo Numérico (Original)
+		// Numeric Mode (Original)
 		args := flag.Args()
 		var uintParams []uint64
 		for _, arg := range args {

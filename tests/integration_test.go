@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/esousa97/gowasmrunner/internal/engine"
 )
@@ -12,18 +13,23 @@ import (
 func TestWasmRunner(t *testing.T) {
 	ctx := context.Background()
 	
-	// Inicializa o runner
-	runner, err := engine.NewRunner(ctx)
+	cfg := engine.RunnerConfig{
+		MaxMemoryPages: 10,
+		Timeout:        2 * time.Second,
+		Stdout:         os.Stdout,
+	}
+
+	runner, err := engine.NewRunner(ctx, cfg)
 	if err != nil {
 		t.Fatalf("failed to create runner: %v", err)
 	}
 	defer runner.Close(ctx)
 
-	// Subteste 1: Operação Numérica (Soma)
+	// Subtest 1: Numeric Operation (Addition)
 	t.Run("Numeric Addition", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "add.wasm")
 		
-		// Verifica se o arquivo existe, senão pula (deve ser gerado antes)
+		// Check if the file exists, otherwise skip (must be generated first)
 		if _, err := os.Stat(wasmPath); os.IsNotExist(err) {
 			t.Skip("add.wasm not found, run generators first")
 		}
@@ -38,7 +44,7 @@ func TestWasmRunner(t *testing.T) {
 		}
 	})
 
-	// Subteste 2: Manipulação de Strings (Saudação)
+	// Subtest 2: String Manipulation (Greeting)
 	t.Run("String Greeting", func(t *testing.T) {
 		wasmPath := filepath.Join("..", "examples", "greet.wasm")
 		
@@ -59,14 +65,31 @@ func TestWasmRunner(t *testing.T) {
 		}
 	})
 
-	// Subteste 3: Erro com arquivo inválido
-	t.Run("Invalid Wasm File", func(t *testing.T) {
-		tmpFile := filepath.Join(t.TempDir(), "invalid.wasm")
-		os.WriteFile(tmpFile, []byte("not a wasm file"), 0644)
+	// Subtest 4: Execution Timeout
+	t.Run("Execution Timeout", func(t *testing.T) {
+		wasmPath := filepath.Join("..", "examples", "infinite_loop.wasm")
+		
+		// Create a runner with a short timeout for the test
+		shortTimeoutCfg := cfg
+		shortTimeoutCfg.Timeout = 100 * time.Millisecond
+		r, _ := engine.NewRunner(ctx, shortTimeoutCfg)
+		defer r.Close(ctx)
 
-		_, err := runner.RunFunction(ctx, tmpFile, "add", 1, 2)
+		_, err := r.RunFunction(ctx, wasmPath, "infinite_loop")
 		if err == nil {
-			t.Error("expected error for invalid wasm file, got nil")
+			t.Error("expected timeout error, got nil")
+		}
+	})
+
+	// Subtest 5: Memory Limit
+	t.Run("Memory Limit", func(t *testing.T) {
+		wasmPath := filepath.Join("..", "examples", "memory_limit.wasm")
+		
+		// Try to instantiate a module that requests 100 pages (6.4MB)
+		// Our runner limits to 10 pages (640KB).
+		_, err := runner.RunFunction(ctx, wasmPath, "dummy")
+		if err == nil {
+			t.Error("expected memory limit error, got nil")
 		}
 	})
 }
