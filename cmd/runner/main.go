@@ -14,24 +14,13 @@ import (
 func main() {
 	// Definindo flags de linha de comando.
 	wasmPath := flag.String("wasm", "", "Path to the WebAssembly module file")
-	funcName := flag.String("func", "add", "The name of the exported function to invoke")
+	mode := flag.String("mode", "numeric", "Execution mode: 'numeric' or 'string'")
 	flag.Parse()
 
 	if *wasmPath == "" {
-		fmt.Println("Usage: gowasmrunner -wasm <path> -func <name> [arg1 arg2 ...]")
+		fmt.Println("Usage: gowasmrunner -wasm <path> [-mode string|numeric] [-func <name>] [args...]")
 		flag.PrintDefaults()
 		os.Exit(1)
-	}
-
-	// Converter argumentos restantes em uint64.
-	args := flag.Args()
-	var uintParams []uint64
-	for _, arg := range args {
-		val, err := strconv.ParseUint(arg, 10, 64)
-		if err != nil {
-			log.Fatalf("Invalid argument %q: must be a positive integer", arg)
-		}
-		uintParams = append(uintParams, val)
 	}
 
 	ctx := context.Background()
@@ -43,16 +32,34 @@ func main() {
 	}
 	defer runner.Close(ctx)
 
-	// Executar a função especificada.
-	results, err := runner.RunFunction(ctx, *wasmPath, *funcName, uintParams...)
-	if err != nil {
-		log.Fatalf("Error executing wasm function: %v", err)
-	}
-
-	// Exibir os resultados.
-	if len(results) > 0 {
-		fmt.Printf("Result(s) of %s(%v): %v\n", *funcName, args, results)
+	if *mode == "string" {
+		// Modo String: pega o primeiro argumento após as flags.
+		args := flag.Args()
+		if len(args) < 1 {
+			log.Fatal("Missing name argument for string mode")
+		}
+		
+		result, err := runner.RunGreet(ctx, *wasmPath, args[0])
+		if err != nil {
+			log.Fatalf("Error executing wasm greeting: %v", err)
+		}
+		fmt.Printf("Wasm Result: %s\n", result)
 	} else {
-		fmt.Printf("Function %s completed with no return value\n", *funcName)
+		// Modo Numérico (Original)
+		args := flag.Args()
+		var uintParams []uint64
+		for _, arg := range args {
+			val, err := strconv.ParseUint(arg, 10, 64)
+			if err != nil {
+				log.Fatalf("Invalid argument %q: must be a positive integer", arg)
+			}
+			uintParams = append(uintParams, val)
+		}
+
+		results, err := runner.RunFunction(ctx, *wasmPath, *funcName, uintParams...)
+		if err != nil {
+			log.Fatalf("Error executing wasm function: %v", err)
+		}
+		fmt.Printf("Result(s) of %s(%v): %v\n", *funcName, args, results)
 	}
 }
