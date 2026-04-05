@@ -113,7 +113,7 @@ graph TD
 
     subgraph "HTTP Gateway"
         Runner --> HTTP[net/http Server :8080]
-        HTTP --> Execute[POST /execute/{plugin}]
+        HTTP --> Execute["POST /execute/{plugin}"]
         Execute --> Engine
     end
 
