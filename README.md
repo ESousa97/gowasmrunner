@@ -37,6 +37,8 @@ $ curl -X POST "http://localhost:8080/execute/plugin-greet.wasm?func=greet" -d "
 Hello, World
 ```
 
+![gowasmrunner in action](assets/gowasmrunner_in_action.png)
+
 ## Tech Stack
 
 | Technology | Role |
