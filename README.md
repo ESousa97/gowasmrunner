@@ -127,28 +127,28 @@ Current configurations are managed via command line flags:
 
 ## Roadmap (Implemented Phases)
 
-**Phase 1: The Host (Basic Wasm Runtime)**
-- **Objective:** Configure the runtime and execute a simple arithmetic function compiled in Wasm.
-- **What was done:** Utilized the Wazero library (100% Go, no CGO dependency) to load a `.wasm` file and call an exported function via command line arguments.
+- [x] **Phase 1: The Host (Basic Wasm Runtime)**
+  - **Objective:** Configure the runtime and execute a simple arithmetic function compiled in Wasm.
+  - **What was done:** Utilized the Wazero library (100% Go, no CGO dependency) to load a `.wasm` file and call an exported function via command line arguments.
 
-**Phase 2: The Bridge (Memory and Data Exchange)**
-- **Objective:** Overcome Wasm's limitation of only handling numbers by enabling the passing of strings and complex objects.
-- **What was done:** Implemented memory allocation logic in the guest (Wasm) and buffer read/write operations in the host (Go) to pass and return greeting strings.
+- [x] **Phase 2: The Bridge (Memory and Data Exchange)**
+  - **Objective:** Overcome Wasm's limitation of only handling numbers by enabling the passing of strings and complex objects.
+  - **What was done:** Implemented memory allocation logic in the guest (Wasm) and buffer read/write operations in the host (Go) to pass and return greeting strings.
 
-**Phase 3: The Warden (Sandboxing and Resources)**
-- **Objective:** Ensure the Wasm module does not consume all server resources, which is essential for the serverless model.
-- **What was done:** Configured memory limits (`MaxMemoryPages`) and execution timeouts (`context.WithTimeout`) for the Wasm instance, alongside basic WASI support for secure host console logging.
+- [x] **Phase 3: The Warden (Sandboxing and Resources)**
+  - **Objective:** Ensure the Wasm module does not consume all server resources, which is essential for the serverless model.
+  - **What was done:** Configured memory limits (`MaxMemoryPages`) and execution timeouts (`context.WithTimeout`) for the Wasm instance, alongside basic WASI support for secure host console logging.
 
-**Phase 4: The Registry (Dynamic Plugin System)**
-- **Objective:** Transform the executor into a platform that loads and manages multiple modules "on-the-fly".
-- **What was done:** Created a `PluginStore` that monitors the `/plugins` folder, pre-compiles the modules (`CompiledModule`), and caches them in memory for ultra-fast invocations via CLI or server.
+- [x] **Phase 4: The Registry (Dynamic Plugin System)**
+  - **Objective:** Transform the executor into a platform that loads and manages multiple modules "on-the-fly".
+  - **What was done:** Created a `PluginStore` that monitors the `/plugins` folder, pre-compiles the modules (`CompiledModule`), and caches them in memory for ultra-fast invocations via CLI or server.
 
-**Phase 5: The Gateway (Serverless HTTP Interface)**
-- **Objective:** Expose Wasm modules through an HTTP API, simulating the behavior of AWS Lambda or Cloudflare Workers.
-- **What was done:** Developed an HTTP server (port 8080) where the `/execute/{plugin_name}` path routes the request (POST body) to the respective Wasm plugin. Included a lean `Dockerfile` (Alpine) ready for deployment.
+- [x] **Phase 5: The Gateway (Serverless HTTP Interface)**
+  - **Objective:** Expose Wasm modules through an HTTP API, simulating the behavior of AWS Lambda or Cloudflare Workers.
+  - **What was done:** Developed an HTTP server (port 8080) where the `/execute/{plugin_name}` path routes the request (POST body) to the respective Wasm plugin. Included a lean `Dockerfile` (Alpine) ready for deployment.
 
-**The Cherry on Top (Language Agnosticism)**
-- The environment proves to be language-agnostic, allowing functions written in languages like **Rust** or **TinyGo** to be easily compiled to `.wasm` and placed in the examples/plugins folder for identical execution.
+- [x] **The Cherry on Top (Language Agnosticism)**
+  - The environment proves to be language-agnostic, allowing functions written in languages like **Rust** or **TinyGo** to be easily compiled to `.wasm` and placed in the examples/plugins folder for identical execution.
 
 ## Contributing
 
