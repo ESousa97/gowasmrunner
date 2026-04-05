@@ -39,14 +39,15 @@ Hello, World
 
 ![gowasmrunner in action](assets/gowasmrunner_in_action.png)
 
-## Tech Stack
+## Technologies & Frameworks
 
-| Technology | Role |
-|---|---|
-| Go | Base language, provides concurrency and static compilation |
-| wazero | Zero-dependency WebAssembly runtime (CGO-free) |
-| Docker | Packaging and distribution for the Serverless Gateway |
-| net/http | Native web server for plugin exposure |
+<div align="center">
+  <img src="https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white" alt="Go" />
+  <img src="https://img.shields.io/badge/wazero-00ADD8?style=flat&logo=go&logoColor=white" alt="wazero" />
+  <img src="https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white" alt="WebAssembly" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/WASI-000000?style=flat&logo=webassembly&logoColor=white" alt="WASI" />
+</div>
 
 ## Prerequisites
 
@@ -89,7 +90,40 @@ docker run -p 8080:8080 gowasmrunner
 
 ## Architecture
 
-The project follows a modular architecture focused on isolation:
+The project follows a modular architecture focused on isolation between the host runtime and guest modules.
+
+<div align="center">
+
+```mermaid
+graph TD
+    CLI[CLI / HTTP Client] --> Runner[cmd/runner]
+
+    subgraph "Execution Layer"
+        Runner --> Engine[internal/engine]
+        Engine --> Store[PluginStore Cache]
+        Engine --> Limits[Memory + Timeout Limits]
+        Engine --> WASI[WASI Stdout Bridge]
+    end
+
+    subgraph "Plugin Layer"
+        Store --> WasmGo[Go / TinyGo Plugin]
+        Store --> WasmRust[Rust Plugin]
+        Store --> WasmCustom[Any .wasm Plugin]
+    end
+
+    subgraph "HTTP Gateway"
+        Runner --> HTTP[net/http Server :8080]
+        HTTP --> Execute[POST /execute/{plugin}]
+        Execute --> Engine
+    end
+
+    style Engine fill:#2da44e,stroke:#fff,stroke-width:1px,color:#fff
+    style HTTP fill:#3498db,stroke:#fff,stroke-width:1px,color:#fff
+    style Store fill:#8e44ad,stroke:#fff,stroke-width:1px,color:#fff
+```
+
+</div>
+
 - `cmd/runner`: Entry point that manages the CLI and the HTTP Server.
 - `internal/engine`: The core system. Manages the `wazero` lifecycle, resource limits (memory/timeout), WASI integration, and the compiled modules cache (`PluginStore`).
 - `plugins/`: Default directory scanned by the system for module pre-warming.
